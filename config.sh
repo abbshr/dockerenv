@@ -74,12 +74,16 @@ config-git() {
 install-nodejs() {
   INFO "安装 Node.js"
   local NPM=(node-gyp)
-  curl -Ss https://git.io/n-install | bash -s -- -q
+  curl -sS https://git.io/n-install | bash -s -- -q
   if [[ $? != 0 ]]; then
-    ERROR "node.js 安装失败"
+    ERROR "node.js 下载失败"
   else
     source ~/.bashrc
-    npm install ${NPM[*]}
+    if n lts; then
+      npm install ${NPM[*]}
+    else
+      ERROR "node.js lts 安装失败"
+    fi
   fi
 }
 
@@ -88,13 +92,16 @@ install-ruby() {
   local GEM=(bundler pry)
   wget -qO - https://github.com/postmodern/ruby-install/archive/v0.7.0.tar.gz | tar xzv
   if [[ $? != 0 ]]; then
-    ERROR "Ruby 安装失败"
+    ERROR "Ruby 下载失败"
   else
     cd ruby-install-0.7.0
     make install
     cd -
-    ruby-install --system ruby
-    gem install ${GEM[*]}
+    if ruby-install --system ruby; then
+      gem install ${GEM[*]}
+    else
+      ERROR "Ruby 安装失败"
+    fi
   fi
 }
 
@@ -102,7 +109,7 @@ install-rust() {
   INFO "安装 Rust"
   curl -sS https://sh.rustup.rs | bash -s -- -y
   if [[ $? != 0 ]]; then
-    ERROR "Rust 安装失败"
+    ERROR "Rust 下载失败"
   else
     echo -en "\nsource ~/.cargo/env;" >> ~/.bashrc
   fi

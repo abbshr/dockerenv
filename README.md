@@ -28,6 +28,8 @@ curl --socks5 127.0.0.1:1080 google.com
 
 ### Container's accessibility
 
+Well, here is a ssh solution.
+
 For MacOS, u can access container by ssh tunnel:
 
 ```sh
