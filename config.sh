@@ -27,7 +27,6 @@ config-dir() {
 }
 
 config-ssh() {
-  # fix: 转义问题
   cat <<'EOF-CONFIG-SSH' >> .bashrc
 ps -aux | grep -v "grep" | grep ssh-agent &> /dev/null
 if [[ $? != 0 ]]; then
