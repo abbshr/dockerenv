@@ -1,15 +1,28 @@
 #!/bin/bash
 
+cd /tmp
+
+source b-log.sh
+
+# log all level
+LOG_LEVEL_ALL
+
 config-system() {
+  WARN "sh 链接到 bash"
   rm -rf /bin/sh
   ln -s /bin/bash /bin/sh
+
   # 剪裁系统缺失开发套件和 man page，这里还原完整版
-  unminimize
+  NOTICE "正在恢复镜像中被裁减的软件"
+  yes | unminimize #&> /dev/null
+
   # 中文环境
+  NOTICE "设置中文环境"
   locale-gen zh_CN.UTF-8
 }
 
 config-dir() {
+  WARN "创建工作目录"
   mkdir -p ~/{github,gitlab,downloads,config,test,.ssh}
 }
 
@@ -29,6 +42,13 @@ fi
 EOF-CONFIG-SSH
 }
 
+config-shadowsocks() {
+  local version=$(sslocal --version)
+  if [[ "${version}" == "Shadowsocks 2.8.2" ]]; then
+    sed -i "s/EVP_CIPHER_CTX_cleanup/EVP_CIPHER_CTX_reset/g" /usr/local/lib/python2.7/dist-packages/shadowsocks/crypto/openssl.py
+  fi
+}
+
 config-git() {
   local name=ran
   local email=abbshrsoufii@gmail.com
@@ -43,6 +63,7 @@ config-git() {
     "color.ui 1"
   )
 
+  NOTICE "配置 git alias"
   # git
   git config --global user.name $name
   git config --global user.email $email
@@ -52,55 +73,75 @@ config-git() {
 }
 
 install-nodejs() {
+  INFO "安装 Node.js"
   local NPM=(node-gyp)
-  curl -L https://git.io/n-install | bash -s -- -q && source ~/.bashrc
-  npm install ${NPM[*]}
+  curl -Ss https://git.io/n-install | bash -s -- -q
+  if [[ $? != 0 ]]; then
+    ERROR "node.js 安装失败"
+  else
+    source ~/.bashrc
+    npm install ${NPM[*]}
+  fi
 }
 
 install-ruby() {
+  INFO "安装 Ruby"
   local GEM=(bundler pry)
-
-  wget -O ruby-install-0.7.0.tar.gz https://github.com/postmodern/ruby-install/archive/v0.7.0.tar.gz
-  tar -xzvf ruby-install-0.7.0.tar.gz
-  cd ruby-install-0.7.0
-  make install
-  cd -
-  ruby-install --system ruby
-  gem install ${GEM[*]}
+  wget -qO - https://github.com/postmodern/ruby-install/archive/v0.7.0.tar.gz | tar xzv
+  if [[ $? != 0 ]]; then
+    ERROR "Ruby 安装失败"
+  else
+    cd ruby-install-0.7.0
+    make install
+    cd -
+    ruby-install --system ruby
+    gem install ${GEM[*]}
+  fi
 }
 
 install-rust() {
-  curl https://sh.rustup.rs -sSf | bash -s -- -y
-  echo -en "\nsource ~/.cargo/env;" >> ~/.bashrc
-  unset CARGO_HOME
-  unset RUSTUP_HOME
+  INFO "安装 Rust"
+  curl -sS https://sh.rustup.rs | bash -s -- -y
+  if [[ $? != 0 ]]; then
+    ERROR "Rust 安装失败"
+  else
+    echo -en "\nsource ~/.cargo/env;" >> ~/.bashrc
+  fi
 }
 
 install-operation-tools() {
+  INFO "安装运维工具"
   pip install ansible
   pip install shadowsocks
 }
 
 install-dependencies() {
+  NOTICE "软件更新"
   export DEBIAN_FRONTEND=noninteractive
-  apt update -yq; apt dist-upgrade -yq
+  apt update -yq; apt dist-upgrade -yq #&> /dev/null
   # TODO: 换源
-  apt install -yq --reinstall ca-certificates
-  apt install -yq net-tools iproute2 iputils-* lsof git git-core gcc g++ make gyp automake bison openssl autoconf libssl-dev libtool build-essential zlib1g zlib1g-dev libssl-dev libyaml-dev libxml2-dev libxslt-dev  libc6-dev ncurses-dev libcurl4-openssl-dev libapr1-dev libaprutil1-dev libx11-dev libffi-dev tcl-dev tk-dev libcap2-bin libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential libpixman-1-dev dump curl traceroute sshfs cifs-utils hostapd ssh openssh-server htop iptables iptstate ufw python-pip vim psmisc privoxy autossh manpages-zh
+  apt install -yq --reinstall ca-certificates #&> /dev/null
+  INFO "安装开发套件"
+  apt install -yq git git-core gcc g++ make gyp automake bison openssl autoconf libssl-dev libtool build-essential zlib1g zlib1g-dev libssl-dev libyaml-dev libxml2-dev libxslt-dev  libc6-dev ncurses-dev libcurl4-openssl-dev libapr1-dev libaprutil1-dev libx11-dev libffi-dev tcl-dev tk-dev libcap2-bin libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential libpixman-1-dev dump curl traceroute sshfs cifs-utils hostapd openssh-server htop iptstate ufw python-pip psmisc privoxy autossh manpages-zh #&> /dev/null
   unset DEBIAN_FRONTEND
 }
 
 main() {
+  config-system
+
   install-dependencies
   # # install-operation-tools
+
+  config-git
+  # config-ssh
+  # config-shadowsocks
+  config-dir
+
   # install-rust
-  # install-nodejs
+  install-nodejs
   # install-ruby
 
-  config-system
-  config-git
-  config-ssh
-  config-dir
+  true
 }
 
 main
