@@ -128,7 +128,7 @@ install-dependencies() {
   # TODO: 换源
   apt install -yq --reinstall ca-certificates #&> /dev/null
   INFO "安装开发套件"
-  apt install -yq git git-core gcc g++ make gyp automake bison openssl autoconf libssl-dev libtool build-essential zlib1g zlib1g-dev libssl-dev libyaml-dev libxml2-dev libxslt-dev  libc6-dev ncurses-dev libcurl4-openssl-dev libapr1-dev libaprutil1-dev libx11-dev libffi-dev tcl-dev tk-dev libcap2-bin libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential libpixman-1-dev dump curl traceroute sshfs cifs-utils hostapd openssh-server htop iptstate ufw python-pip psmisc privoxy autossh manpages-zh #&> /dev/null
+  apt install -yq git git-core gcc g++ make gyp automake bison openssl autoconf libssl-dev libtool build-essential zlib1g zlib1g-dev libssl-dev libyaml-dev libxml2-dev libxslt-dev  libc6-dev ncurses-dev libcurl4-openssl-dev libapr1-dev libaprutil1-dev libx11-dev libffi-dev tcl-dev tk-dev libcap2-bin libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential libpixman-1-dev dump curl traceroute sshfs cifs-utils hostapd openssh-server htop net-tools iptstate ufw python-pip psmisc privoxy autossh manpages-zh #&> /dev/null
   unset DEBIAN_FRONTEND
 }
 
